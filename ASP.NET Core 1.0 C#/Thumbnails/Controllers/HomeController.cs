@@ -6,6 +6,7 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Http;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.IO;
 
 namespace Thumbnails.Controllers
 {
@@ -33,6 +34,19 @@ namespace Thumbnails.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FileExample(IFormFile file)
         {
+            //set original file to in view data so we can compare to cropped
+            using (var fileStream = file.OpenReadStream())
+            {
+                byte[] result;
+                using (var streamReader = new MemoryStream())
+                {
+                    fileStream.CopyTo(streamReader);
+                    result = streamReader.ToArray();
+                }
+                ViewData["originalImage"] = "data:image/png;base64," + Convert.ToBase64String(result);
+            }
+            
+
             //get form data
             var width = (string.IsNullOrEmpty(Request.Form["width"].ToString())) ?
                 "100" :
@@ -65,7 +79,7 @@ namespace Thumbnails.Controllers
                 //read response and write to view
                 var responseContent = await response.Content.ReadAsByteArrayAsync();
                 //ViewData["Result"] = responseContent;
-                ViewData["image"] = "data:image/png;base64," + Convert.ToBase64String(responseContent);
+                ViewData["thumbnailImage"] = "data:image/png;base64," + Convert.ToBase64String(responseContent);
             }
 
             return View();
