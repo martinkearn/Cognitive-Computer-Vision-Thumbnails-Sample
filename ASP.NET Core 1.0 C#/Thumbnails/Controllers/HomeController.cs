@@ -7,6 +7,8 @@ using Microsoft.AspNet.Http;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.IO;
+using Thumbnails.Models;
+using Newtonsoft.Json;
 
 namespace Thumbnails.Controllers
 {
@@ -16,7 +18,7 @@ namespace Thumbnails.Controllers
         public const string _apiKey = "382f5abd65f74494935027f65a41a4bc";
 
         //_apiUrl: The base URL for the API. Find out what this is for other APIs via the API documentation
-        public const string _apiUrl = "https://api.projectoxford.ai/vision/v1.0/generateThumbnail";
+        public const string _apiUrlBase = "https://api.projectoxford.ai/vision/v1.0/generateThumbnail";
 
         public IActionResult Index()
         {
@@ -34,20 +36,10 @@ namespace Thumbnails.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FileExample(IFormFile file)
         {
-            //set original file to in view data so we can compare to cropped
-            using (var fileStream = file.OpenReadStream())
-            {
-                byte[] result;
-                using (var streamReader = new MemoryStream())
-                {
-                    fileStream.CopyTo(streamReader);
-                    result = streamReader.ToArray();
-                }
-                ViewData["originalImage"] = "data:image/png;base64," + Convert.ToBase64String(result);
-            }
+            //put the original file in the view data so we can compare it
+            ViewData["originalImage"] = FileToImgSrcString(file);
             
-
-            //get form data
+            //get input data from form
             var width = (string.IsNullOrEmpty(Request.Form["width"].ToString())) ?
                 "100" :
                 Request.Form["width"].ToString();
@@ -63,7 +55,7 @@ namespace Thumbnails.Controllers
             using (var httpClient = new HttpClient())
             {
                 //setup HttpClient
-                httpClient.BaseAddress = new Uri(_apiUrl);
+                httpClient.BaseAddress = new Uri(_apiUrlBase);
                 httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
 
                 //setup data object
@@ -71,15 +63,55 @@ namespace Thumbnails.Controllers
                 content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/octet-stream");
 
                 // Request parameters
-                var uri = _apiUrl + string.Format("?width={0}&height={1}&smartCropping={2}", width, height, smartcropping);
+                var uri = $"{_apiUrlBase}?width={width}&height={height}&smartCropping={smartcropping}";
+
+                //make request
+                var response = await httpClient.PostAsync(uri, content);
+
+                //read response and write to view data
+                var responseContent = await response.Content.ReadAsByteArrayAsync();
+                ViewData["thumbnailImage"] = BytesToSrcString(responseContent);
+            }
+
+            return View();
+        }
+
+        // GET: Home/UrlExample
+        public IActionResult URLExample()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> URLExample(string width = "250", string height = "250", bool smartcropping = true)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                //setup HttpClient
+                httpClient.BaseAddress = new Uri(_apiUrlBase);
+                httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
+
+                //setup data object
+                var dataObject = new URLData()
+                {
+                    url = "https://oxfordportal.blob.core.windows.net/emotion/recognition1.jpg"
+                };
+
+                //setup httpContent object
+                var dataJson = JsonConvert.SerializeObject(dataObject);
+                HttpContent content = new StringContent(dataJson);
+                content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
+
+                // Request parameters
+                var uri = $"{_apiUrlBase}?width={width}&height={height}&smartCropping={smartcropping}";
 
                 //make request
                 var response = await httpClient.PostAsync(uri, content);
 
                 //read response and write to view
                 var responseContent = await response.Content.ReadAsByteArrayAsync();
-                //ViewData["Result"] = responseContent;
-                ViewData["thumbnailImage"] = "data:image/png;base64," + Convert.ToBase64String(responseContent);
+                ViewData["thumbnailImage"] = BytesToSrcString(responseContent);
             }
 
             return View();
@@ -89,5 +121,23 @@ namespace Thumbnails.Controllers
         {
             return View();
         }
+
+
+        private string FileToImgSrcString(IFormFile file)
+        {
+            byte[] fileBytes;
+            using (var stream = file.OpenReadStream())
+            {
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    stream.CopyTo(memoryStream);
+                    fileBytes = memoryStream.ToArray();
+                }
+            }
+            return BytesToSrcString(fileBytes);
+        }
+
+        private string BytesToSrcString(byte[] bytes) => "data:image/png;base64," + Convert.ToBase64String(bytes);
     }
 }
