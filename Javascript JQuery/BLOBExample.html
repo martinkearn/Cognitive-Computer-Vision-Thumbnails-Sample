@@ -1,0 +1,99 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.5/css/bootstrap.min.css" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="container body-content">
+        <div class="row">
+            <div class="col-md-12">
+                <p>This example shows how to post an image to the Cognitive Services Computer Vision API (thumbnails) using
+                    a binary file</p>
+                <form enctype="multipart/form-data">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label for="file">Image</label>
+                            <input type="file" name="file" id="file" class="form-control">
+                            <p class="help-block">Must be JPEG/PNG/GIF/BMP, up to 4mb and greater than 50x50px</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="width">Width</label>
+                            <input type="text" name="width" id="width" class="form-control">
+                            <p class="help-block">How wide you want your thumbnail (in px)</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="height">Height</label>
+                            <input type="text" name="height" id="height" class="form-control">
+                            <p class="help-block">How high you want your thumbnail (in px)</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="smartcropping">Smart Crop</label>
+                            <input type="checkbox" name="smartcropping" id="smartcropping" class="" checked>
+                            <p class="help-block">Crop based on the region of interest within the source image</p>
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" value="Upload" class="btn btn-primary" onclick="SubmitForm()" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div id="response">Awaiting response ...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        //apiKey: Replace this with your own Cognitive Services Computer Vision API key, please do not use my key. I include it here so you can get up and running quickly but you can get your own key for free at https://www.microsoft.com/cognitive-services/en-us/computer-vision-api
+        var apiKey = "382f5abd65f74494935027f65a41a4bc";
+        
+        //apiUrl: The base URL for the API. Find out what this is for other APIs via the API documentation
+        var apiUrl = "https://api.projectoxford.ai/vision/v1.0/generateThumbnail";
+        
+        function SubmitForm()
+        {
+            //var file = document.getElementById('file').files[0];
+            var file = $("#file")[0].files[0];
+            var width = $('#width').val();
+            var height = $('#height').val();
+            var smartcroppingRaw = $('#smartcropping').val();
+            var smartcropping;
+            if (smartcroppingRaw == "on")
+            {
+                smartcropping = "true";
+            }
+            else
+            {
+                smartcropping = "false";
+            }
+            
+            var uri = apiUrl +"?width=" +width +"&height=" +height +"&smartCropping=" +smartCropping;
+            
+            $.ajax({
+                url: uri,
+                beforeSend: function (xhrObj) {
+                    xhrObj.setRequestHeader("Content-Type", "application/octet-stream");
+                    xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key", apiKey);
+                },
+                type: "POST",
+                data: file,
+                processData: false
+            })
+                .done(function (response) {
+                    var data = JSON.stringify(response);
+                    $("#response").text(data);
+                })
+                .fail(function (error) {
+                    
+                    alert (error);
+                    $("#response").text("Error: " +error.responseText);
+                });
+        }
+    </script>
+</body>
+
+</html>
