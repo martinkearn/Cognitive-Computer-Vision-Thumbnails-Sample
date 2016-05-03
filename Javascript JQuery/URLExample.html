@@ -4,7 +4,8 @@
 </head>
 <body>
     <button id="btn">Click here</button>
-    <p id="response">
+    <div id="response">
+    <img id="thumbnail">
 
     <script type="text/javascript">
         $('#btn').click(function () {
@@ -18,7 +19,7 @@
                 data: '{"url": "https://oxfordportal.blob.core.windows.net/emotion/recognition1.jpg"}'
             })
             .done(function (response) {
-                $("#response").text(response);
+                $('#thumbnail').attr("src",("data:image/jpg;base64," +response));
             })
             .fail(function (error) {
                 $("#response").text(error);
