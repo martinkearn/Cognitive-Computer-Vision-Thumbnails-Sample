@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Http;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.IO;
-using Thumbnails.Models;
-using Newtonsoft.Json;
+using System.Net.Http.Headers;
 
 namespace Thumbnails.Controllers
 {
@@ -92,15 +88,9 @@ namespace Thumbnails.Controllers
                 httpClient.BaseAddress = new Uri(_apiUrlBase);
                 httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
 
-                //setup data object
-                var dataObject = new URLData()
-                {
-                    url = "https://oxfordportal.blob.core.windows.net/emotion/recognition1.jpg"
-                };
-
                 //setup httpContent object
-                var dataJson = JsonConvert.SerializeObject(dataObject);
-                HttpContent content = new StringContent(dataJson);
+                var imageUrl = "https://oxfordportal.blob.core.windows.net/emotion/recognition1.jpg";
+                HttpContent content = new StringContent($"{{\"url\":\"{imageUrl}\"}}");
                 content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
 
                 // Request parameters
