@@ -1,30 +1,34 @@
 <html>
+
 <head>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 </head>
+
 <body>
     <button id="btn">Click here</button>
     <div id="response">
-    <img id="thumbnail">
+        <img id="thumbnail">
 
-    <script type="text/javascript">
-        $('#btn').click(function () {
-            $.ajax({
-                url: "https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=100&height=100&smartCropping=true",        
-                beforeSend: function (xhrObj) {
-                    xhrObj.setRequestHeader("Content-Type", "application/json");
-                    xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key", "382f5abd65f74494935027f65a41a4bc");
-                },
-                type: "POST",
-                data: '{"url": "https://oxfordportal.blob.core.windows.net/emotion/recognition1.jpg"}'
-            })
-            .done(function (response) {
-                $('#thumbnail').attr("src",("data:image/jpg;base64," +response));
-            })
-            .fail(function (error) {
-                $("#response").text(error);
+        <script type="text/javascript">
+            $('#btn').click(function () {
+
+                $.ajax({
+                    url: "https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=100&height=100&smartCropping=true",        
+                    beforeSend: function (xhrObj) {
+                        xhrObj.setRequestHeader("Content-Type", "application/json");
+                        xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key", "382f5abd65f74494935027f65a41a4bc");
+                    },
+                    type: "POST",
+                    processData: false,
+                    data: '{"url": "https://oxfordportal.blob.core.windows.net/emotion/recognition1.jpg"}',
+                })
+                .done(function(file) {
+                    alert("success");
+                    $('#thumbnail').attr("src",("data:image/png;base64," +file));
+                });
+
             });
-        });        
-    </script>
+        </script>
 </body>
+
 </html>
