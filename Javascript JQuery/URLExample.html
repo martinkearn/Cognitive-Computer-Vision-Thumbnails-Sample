@@ -33,7 +33,8 @@
                     response.appendChild(image);
                 }, false);
 
-                reader.readAsDataURL(new Blob([file]));
+                var blob = new Blob([file], {type: 'image/jpg'});
+                reader.readAsDataURL(blob);
                 
                 
                 

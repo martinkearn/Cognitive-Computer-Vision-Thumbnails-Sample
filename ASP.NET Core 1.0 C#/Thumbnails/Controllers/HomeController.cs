@@ -80,7 +80,7 @@ namespace Thumbnails.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> URLExample(string width = "250", string height = "250", bool smartcropping = true)
+        public async Task<IActionResult> URLExample(string width = "5", string height = "5", bool smartcropping = true)
         {
             using (var httpClient = new HttpClient())
             {
@@ -128,6 +128,6 @@ namespace Thumbnails.Controllers
             return BytesToSrcString(fileBytes);
         }
 
-        private string BytesToSrcString(byte[] bytes) => "data:image/png;base64," + Convert.ToBase64String(bytes);
+        private string BytesToSrcString(byte[] bytes) => "data:image/jpg;base64," + Convert.ToBase64String(bytes);
     }
 }
